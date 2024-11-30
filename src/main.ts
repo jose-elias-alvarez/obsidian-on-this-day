@@ -1,49 +1,50 @@
 import moment from "moment";
-import { App, IconName, Plugin, PluginManifest, TFile } from "obsidian";
+import { IconName, Plugin, TFile, WorkspaceLeaf } from "obsidian";
 import OnThisDaySidePanelView from "./side-panel-view";
+
+type OnThisDayLeaf = WorkspaceLeaf & {
+    view: OnThisDaySidePanelView;
+};
 
 export default class OnThisDayPlugin extends Plugin {
     static title = "On This Day";
     static icon: IconName = "notebook-pen";
     static viewType = "on-this-day-view";
     static commandId = "open-on-this-day-panel";
-    static commandName = "Open On This Day panel";
+    static commandName = "Open panel";
+    private static defaultFormat = "YYYY-MM-DD";
 
-    dailyNotesFolder: string;
-    dailyNotesFormat: string;
-
-    constructor(app: App, manifest: PluginManifest) {
-        super(app, manifest);
-        const { folder, format } =
+    private get folder(): string {
+        return (
             // @ts-expect-error
             this.app.internalPlugins.getPluginById("daily-notes")?.instance
-                ?.options || {};
-        this.dailyNotesFolder = folder || "";
-        this.dailyNotesFormat = format || "YYYY-MM-DD";
+                ?.options?.folder || ""
+        );
     }
-
-    private isDailyNote(note: TFile): boolean {
+    private get format(): string {
         return (
-            note.path.startsWith(this.dailyNotesFolder) &&
-            moment(note.basename).isValid()
+            // @ts-expect-error
+            this.app.internalPlugins.getPluginById("daily-notes")?.instance
+                ?.options?.format || OnThisDayPlugin.defaultFormat
         );
     }
 
-    getCurrentDate(): moment.Moment {
-        const currentNote = this.app.workspace.getActiveFile();
-        return currentNote && this.isDailyNote(currentNote)
-            ? moment(currentNote.basename, this.dailyNotesFormat)
-            : moment();
+    private _notes: TFile[] | null = null;
+    get notes(): TFile[] {
+        if (!this._notes) {
+            this.loadNotes();
+        }
+        return this._notes || [];
     }
 
-    async getOnThisDayNotes(): Promise<{ name: string; content: string }[]> {
-        const currentDate = this.getCurrentDate();
-        const dailyNotes = this.app.vault
+    private loadNotes(): void {
+        const { currentDate, format } = this;
+        this._notes = this.app.vault
             .getFiles()
             .filter((note) => this.isDailyNote(note))
             .map((note) => ({
                 note,
-                date: moment(note.basename, this.dailyNotesFormat),
+                date: moment(note.basename, format),
             }))
             .filter(({ date }) => {
                 return (
@@ -53,34 +54,63 @@ export default class OnThisDayPlugin extends Plugin {
             })
             .sort((a, b) => b.date.valueOf() - a.date.valueOf())
             .map(({ note }) => note);
-        return Promise.all(
-            dailyNotes.map(async (note) => ({
-                name: note.basename,
-                content: await this.app.vault.cachedRead(note),
-            })),
+    }
+
+    private get currentDate(): moment.Moment {
+        const currentNote = this.app.workspace.getActiveFile();
+        return currentNote && this.isDailyNote(currentNote)
+            ? moment(currentNote.basename, this.format)
+            : moment();
+    }
+
+    get formattedDate(): string {
+        return this.currentDate.format(this.format);
+    }
+
+    private isDailyNote(note: TFile): boolean {
+        return (
+            note.path.startsWith(this.folder) && moment(note.basename).isValid()
         );
     }
 
-    async activateView(): Promise<void> {
-        const leaf = this.app.workspace.getRightLeaf(false);
-        if (!leaf) return;
-        await leaf.setViewState({
+    private get visibleLeaves(): OnThisDayLeaf[] {
+        return this.app.workspace
+            .getLeavesOfType(OnThisDayPlugin.viewType)
+            .filter((leaf) => !leaf.isDeferred) as OnThisDayLeaf[];
+    }
+
+    private async activateView(): Promise<void> {
+        const leaves = this.visibleLeaves;
+        if (leaves.length > 0) {
+            leaves.forEach((leaf) => this.app.workspace.revealLeaf(leaf));
+            return;
+        }
+
+        const rightLeaf = this.app.workspace.getRightLeaf(false);
+        if (!rightLeaf) return;
+        await rightLeaf.setViewState({
             type: OnThisDayPlugin.viewType,
             active: true,
         });
-        this.app.workspace.revealLeaf(leaf);
+        this.app.workspace.revealLeaf(rightLeaf);
     }
 
-    async refresh(): Promise<void> {
-        const onThisDayViews = this.app.workspace
-            .getLeavesOfType(OnThisDayPlugin.viewType)
-            .filter((leaf) => leaf.view instanceof OnThisDaySidePanelView)
-            .map((leaf) => leaf.view) as OnThisDaySidePanelView[];
+    private async refreshViews(reload = false): Promise<void> {
+        if (reload) this.loadNotes();
         await Promise.all(
-            onThisDayViews.map(async (view) => {
-                await view.refresh();
-            }),
+            this.visibleLeaves.map(async ({ view }) => await view.refresh()),
         );
+    }
+
+    private async onFileChange(note: TFile | null): Promise<void> {
+        if (!(note && this.isDailyNote(note))) return;
+        await this.refreshViews(true);
+    }
+
+    private async onContentChange(note: TFile): Promise<void> {
+        if (this.visibleLeaves.length === 0) return;
+        if (!this.isDailyNote(note)) return;
+        await this.refreshViews();
     }
 
     async onload(): Promise<void> {
@@ -89,30 +119,34 @@ export default class OnThisDayPlugin extends Plugin {
             (leaf) => new OnThisDaySidePanelView(leaf, this),
         );
         this.registerEvent(
-            this.app.workspace.on("file-open", async (note) => {
-                if (!(note && this.isDailyNote(note))) return;
-                this.refresh();
-            }),
+            this.app.workspace.on(
+                "file-open",
+                async (note) => await this.onFileChange(note),
+            ),
         );
         this.registerEvent(
-            this.app.metadataCache.on("changed", async (note: TFile) => {
-                if (!this.isDailyNote(note)) return;
-                await this.refresh();
-            }),
+            this.app.metadataCache.on(
+                "deleted",
+                async (note) => await this.onFileChange(note),
+            ),
         );
+
+        this.registerEvent(
+            this.app.metadataCache.on(
+                "changed",
+                async (note) => await this.onContentChange(note),
+            ),
+        );
+
         this.addCommand({
             id: OnThisDayPlugin.commandId,
             name: OnThisDayPlugin.commandName,
-            callback: async () => {
-                await this.activateView();
-            },
+            callback: async () => await this.activateView(),
         });
         this.addRibbonIcon(
             OnThisDayPlugin.icon,
             OnThisDayPlugin.commandName,
-            async () => {
-                await this.activateView();
-            },
+            async () => await this.activateView(),
         );
     }
 }

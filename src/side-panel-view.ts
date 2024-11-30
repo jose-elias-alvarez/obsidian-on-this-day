@@ -1,8 +1,13 @@
-import { IconName, ItemView, MarkdownRenderer, WorkspaceLeaf } from "obsidian";
+import {
+    IconName,
+    ItemView,
+    MarkdownRenderer,
+    TFile,
+    WorkspaceLeaf,
+} from "obsidian";
 import OnThisDayPlugin from "./main";
 
 export default class OnThisDaySidePanelView extends ItemView {
-    maxLength = 200;
     plugin: OnThisDayPlugin;
 
     constructor(leaf: WorkspaceLeaf, plugin: OnThisDayPlugin) {
@@ -10,31 +15,28 @@ export default class OnThisDaySidePanelView extends ItemView {
         this.plugin = plugin;
     }
 
-    private async createDailyNoteSection(
-        name: string,
-        content: string,
-        sourcePath: string,
-    ): Promise<void> {
-        const heading = this.containerEl.createEl("h2");
-        const headingLink = heading.createEl("a", {
-            text: name,
-            href: name,
-        });
-        headingLink.addEventListener("click", (e) => {
-            e.preventDefault();
-            this.app.workspace.openLinkText(name, sourcePath);
-        });
+    private async createSection(note: TFile): Promise<void> {
+        const sectionHeading = this.containerEl.createEl("h4");
+        sectionHeading
+            .createEl("a", {
+                text: note.basename,
+                href: note.basename,
+            })
+            .addEventListener("click", (e) => {
+                e.preventDefault();
+                this.app.workspace.openLinkText(note.basename, note.path);
+            });
 
-        const previewEl = this.containerEl.createEl("blockquote");
-        previewEl.addClass("on-this-day-preview");
+        const preview = this.containerEl.createEl("blockquote");
+        preview.addClass("on-this-day-preview");
         await MarkdownRenderer.render(
             this.app,
-            content,
-            previewEl,
-            sourcePath,
+            (await this.app.vault.cachedRead(note)) || "(empty)",
+            preview,
+            note.path,
             this,
         );
-        previewEl
+        preview
             .querySelectorAll(".internal-link")
             .forEach((link: HTMLElement) =>
                 link.addEventListener("click", (event) => {
@@ -43,7 +45,7 @@ export default class OnThisDaySidePanelView extends ItemView {
                     if (href) {
                         this.app.workspace.openLinkText(
                             href,
-                            sourcePath,
+                            note.path,
                             event.ctrlKey || event.metaKey,
                         );
                     }
@@ -54,19 +56,12 @@ export default class OnThisDaySidePanelView extends ItemView {
     async refresh(): Promise<void> {
         this.containerEl.empty();
         this.containerEl.addClass("on-this-day-container");
-        this.containerEl.createEl("h1", {
-            text: OnThisDayPlugin.title,
+        this.containerEl.createEl("h3", {
+            text: `${OnThisDayPlugin.title}: ${this.plugin.formattedDate}`,
         });
-
-        const notes = await this.plugin.getOnThisDayNotes();
         await Promise.all(
-            notes.map(
-                async ({ name, content }) =>
-                    await this.createDailyNoteSection(
-                        name,
-                        content || "(empty)",
-                        this.app.workspace.getActiveFile()?.path || "",
-                    ),
+            this.plugin.notes.map(
+                async (note) => await this.createSection(note),
             ),
         );
     }
