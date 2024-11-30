@@ -59,6 +59,10 @@ export default class OnThisDaySidePanelView extends ItemView {
         this.containerEl.createEl("h3", {
             text: `${OnThisDayPlugin.title}: ${this.plugin.formattedDate}`,
         });
+        if (this.plugin.notes.length === 0) {
+            this.containerEl.createEl("p", { text: "No notes found!" });
+            return;
+        }
         await Promise.all(
             this.plugin.notes.map(
                 async (note) => await this.createSection(note),
