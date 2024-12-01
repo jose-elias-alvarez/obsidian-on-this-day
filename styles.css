@@ -1,5 +1,6 @@
 div.on-this-day-container {
     padding: 1rem;
+    overflow: auto;
 }
 
 blockquote.on-this-day-preview {
