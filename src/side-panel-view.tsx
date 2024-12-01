@@ -93,8 +93,8 @@ export default class OnThisDaySidePanelView extends ItemView {
     };
 
     RootComponent = () => {
-        const [notes, setNotes] = useState<TFile[]>([]);
-        const [date, setDate] = useState<string>("");
+        const [notes, setNotes] = useState<TFile[]>(this.plugin.notes);
+        const [date, setDate] = useState<string>(this.plugin.formattedDate);
         useEffect(() => {
             const listener = (newNotes: TFile[], newDate: string) => {
                 setNotes([...newNotes]);
@@ -103,7 +103,6 @@ export default class OnThisDaySidePanelView extends ItemView {
             this.plugin.subscribe(listener);
             return () => this.plugin.unsubscribe(listener);
         }, []);
-
         return (
             <>
                 <h3>On This Day: {date}</h3>
@@ -113,14 +112,6 @@ export default class OnThisDaySidePanelView extends ItemView {
             </>
         );
     };
-
-    async render(): Promise<void> {
-        this.root?.render(
-            <StrictMode>
-                <this.RootComponent />
-            </StrictMode>,
-        );
-    }
 
     getViewType(): string {
         return OnThisDayPlugin.viewType;
@@ -136,7 +127,11 @@ export default class OnThisDaySidePanelView extends ItemView {
 
     async onOpen(): Promise<void> {
         this.root = createRoot(this.containerEl.children[1]);
-        this.render();
+        this.root?.render(
+            <StrictMode>
+                <this.RootComponent />
+            </StrictMode>,
+        );
     }
 
     async onClose(): Promise<void> {

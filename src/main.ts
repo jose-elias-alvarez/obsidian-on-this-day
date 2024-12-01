@@ -1,5 +1,5 @@
 import moment from "moment";
-import { IconName, Plugin, TFile, WorkspaceLeaf } from "obsidian";
+import { debounce, IconName, Plugin, TFile, WorkspaceLeaf } from "obsidian";
 import OnThisDaySidePanelView from "./side-panel-view";
 
 type OnThisDayLeaf = WorkspaceLeaf & {
@@ -49,13 +49,17 @@ export default class OnThisDayPlugin extends Plugin {
             : moment();
     }
 
+    get formattedDate() {
+        return this.currentDate.format(this.format);
+    }
+
     private isDailyNote(note: TFile): boolean {
         return (
             note.path.startsWith(this.folder) && moment(note.basename).isValid()
         );
     }
 
-    private lastDailyNotes: TFile[] = [];
+    notes: TFile[] = [];
     private getDailyNotes(): TFile[] {
         const { currentDate, format } = this;
         const dailyNotes = this.app.vault
@@ -73,7 +77,7 @@ export default class OnThisDayPlugin extends Plugin {
             })
             .sort((a, b) => b.date.valueOf() - a.date.valueOf())
             .map(({ note }) => note);
-        this.lastDailyNotes = dailyNotes;
+        this.notes = dailyNotes;
         return dailyNotes;
     }
 
@@ -100,10 +104,9 @@ export default class OnThisDayPlugin extends Plugin {
     }
 
     private refreshViews(reload = false) {
-        if (reload) this.getDailyNotes();
         this.emit(
-            reload ? this.getDailyNotes() : this.lastDailyNotes,
-            this.currentDate.format(this.format),
+            reload ? this.getDailyNotes() : this.notes,
+            this.formattedDate,
         );
     }
 
@@ -125,21 +128,23 @@ export default class OnThisDayPlugin extends Plugin {
         );
 
         this.registerEvent(
-            this.app.workspace.on("file-open", async (note) =>
+            this.app.workspace.on("file-open", (note) =>
                 this.onFileChange(note),
             ),
         );
         this.registerEvent(
-            this.app.metadataCache.on("deleted", async (note) =>
+            this.app.metadataCache.on("deleted", (note) =>
                 this.onFileChange(note),
             ),
         );
         this.registerEvent(
-            this.app.metadataCache.on("changed", async (note) =>
-                this.onContentChange(note),
+            this.app.metadataCache.on(
+                "changed",
+                debounce((note) => this.onContentChange(note)),
+                1000,
             ),
         );
-        this.app.workspace.onLayoutReady(async () => this.refreshViews(true));
+        this.app.workspace.onLayoutReady(() => this.refreshViews(true));
 
         this.addCommand({
             id: OnThisDayPlugin.commandId,
