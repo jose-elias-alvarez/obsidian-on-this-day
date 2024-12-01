@@ -1,11 +1,51 @@
-div.on-this-day-container {
+.on-this-day {
     padding: 1rem;
     overflow: auto;
 }
 
-blockquote.on-this-day-preview {
+.on-this-day-section {
+    display: flex;
+    padding: 1.25em 1.75em;
+    gap: 1.75em;
+    border-radius: 8px;
+    background-color: var(--background-secondary);
+    margin-bottom: 0.75em;
+    align-items: flex-start;
+}
+
+.on-this-day-section-content {
+    flex: 1;
+    min-width: 0;
+    padding: 0.75em 0;
+}
+
+.on-this-day-section-content h4 {
+    margin: 0;
+    font-size: 0.9em;
+    opacity: 0.8;
+}
+
+.on-this-day-section blockquote {
     overflow: hidden;
+    line-clamp: 5;
     -webkit-line-clamp: 5;
     -webkit-box-orient: vertical;
     display: -webkit-box;
+    margin: 0;
+    padding: 0;
+    border: none;
+}
+
+.on-this-day-section-image-container {
+    width: 8.75em;
+    flex-shrink: 0;
+    aspect-ratio: 1/1;
+    margin: 0.75em 0; /* Add vertical margin to image container */
+}
+
+.on-this-day-section-image-container img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 0.375em;
 }

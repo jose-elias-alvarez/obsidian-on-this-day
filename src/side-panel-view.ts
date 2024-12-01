@@ -15,47 +15,82 @@ export default class OnThisDaySidePanelView extends ItemView {
         this.plugin = plugin;
     }
 
-    private async createSection(note: TFile): Promise<void> {
-        const sectionHeading = this.containerEl.createEl("h4");
-        sectionHeading
-            .createEl("a", {
-                text: note.basename,
-                href: note.basename,
-            })
-            .addEventListener("click", (e) => {
-                e.preventDefault();
-                this.app.workspace.openLinkText(note.basename, note.path);
-            });
+    // https://help.obsidian.md/Files+and+folders/Accepted+file+formats
+    private embeddedImageFileExtensions = new Set([
+        "avif",
+        "bmp",
+        "gif",
+        "jpeg",
+        "jpg",
+        "png",
+        "svg",
+        "webp",
+    ]);
+    private getPreviewImage(note: TFile): TFile | null {
+        for (const embed of this.app.metadataCache.getFileCache(note)?.embeds ||
+            []) {
+            const embeddedFile = this.app.metadataCache.getFirstLinkpathDest(
+                embed.link,
+                note.path,
+            );
+            if (
+                embeddedFile &&
+                this.embeddedImageFileExtensions.has(embeddedFile.extension)
+            )
+                return embeddedFile;
+        }
+        return null;
+    }
 
-        const preview = this.containerEl.createEl("blockquote");
-        preview.addClass("on-this-day-preview");
+    private async createSection(note: TFile): Promise<void> {
+        const sectionContainer = this.containerEl.createDiv();
+        sectionContainer.classList.add("on-this-day-section");
+
+        const contentContainer = sectionContainer.createDiv();
+        contentContainer.classList.add("on-this-day-section-content");
+
+        const sectionHeading = contentContainer.createEl("h4");
+        const headingLink = sectionHeading.createEl("a");
+        headingLink.setText(note.basename);
+        headingLink.setAttr("href", note.basename);
+        headingLink.addEventListener("click", (e) => {
+            e.preventDefault();
+            this.app.workspace.openLinkText(note.basename, note.path);
+        });
+
+        const preview = contentContainer.createEl("blockquote");
         await MarkdownRenderer.render(
             this.app,
-            (await this.app.vault.cachedRead(note)) || "(empty)",
+            await this.app.vault.cachedRead(note),
             preview,
             note.path,
             this,
         );
         preview
             .querySelectorAll(".internal-link")
-            .forEach((link: HTMLElement) =>
+            .forEach((link: HTMLElement) => {
                 link.addEventListener("click", (event) => {
                     event.preventDefault();
-                    const href = link.getAttribute("href");
-                    if (href) {
-                        this.app.workspace.openLinkText(
-                            href,
-                            note.path,
-                            event.ctrlKey || event.metaKey,
-                        );
-                    }
-                }),
-            );
+                    this.app.workspace.openLinkText(
+                        link.getAttribute("href") || "",
+                        note.path,
+                        event.ctrlKey || event.metaKey,
+                    );
+                });
+            });
+
+        const previewImage = this.getPreviewImage(note);
+        if (previewImage) {
+            const imageContainer = sectionContainer.createDiv();
+            imageContainer.classList.add("on-this-day-section-image-container");
+            imageContainer.createEl("img").src =
+                this.app.vault.getResourcePath(previewImage);
+        }
     }
 
     async refresh(): Promise<void> {
         this.containerEl.empty();
-        this.containerEl.addClass("on-this-day-container");
+        this.containerEl.addClass("on-this-day");
         this.containerEl.createEl("h3", {
             text: `${OnThisDayPlugin.title}: ${this.plugin.formattedDate}`,
         });
