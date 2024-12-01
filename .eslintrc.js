@@ -18,7 +18,6 @@ module.exports = {
         "@typescript-eslint/ban-ts-comment": "off",
         "no-prototype-builtins": "off",
         "@typescript-eslint/no-empty-function": "off",
-        "@typescript-eslint/explicit-function-return-type": ["warn"],
     },
     ignorePatterns: ["mode_modules/", "main.js"],
 };
