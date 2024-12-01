@@ -24,12 +24,16 @@
     background-color: var(--background-secondary);
     margin-bottom: 0.75em;
     align-items: flex-start;
+    cursor: pointer;
+}
+
+.on-this-day-section:hover {
+    background-color: var(--background-modifier-active-hover);
 }
 
 .on-this-day-section-content {
     flex: 1;
     min-width: 0;
-    padding: calc(var(--otd-base-spacing) * 0.75) 0;
     max-height: var(--otd-content-max-height);
     overflow: hidden;
 }
@@ -40,6 +44,16 @@
     padding: 0;
     border: none;
     overflow: hidden;
+}
+
+.on-this-day-section .internal-link {
+    cursor: inherit;
+    pointer-events: none;
+}
+
+.on-this-day-section .internal-link:hover {
+    text-decoration: none;
+    color: inherit;
 }
 
 .on-this-day-section-content h4 {

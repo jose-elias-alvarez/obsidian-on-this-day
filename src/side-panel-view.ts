@@ -45,17 +45,15 @@ export default class OnThisDaySidePanelView extends ItemView {
     private async createSection(note: TFile): Promise<void> {
         const sectionContainer = this.containerEl.createDiv();
         sectionContainer.classList.add("on-this-day-section");
+        sectionContainer.addEventListener("click", (e) => {
+            e.preventDefault();
+            this.app.workspace.openLinkText(note.basename, note.path);
+        });
 
         const contentContainer = sectionContainer.createDiv();
         contentContainer.classList.add("on-this-day-section-content");
-
-        const sectionHeading = contentContainer.createEl("h4");
-        const headingLink = sectionHeading.createEl("a");
-        headingLink.setText(note.basename);
-        headingLink.setAttr("href", note.basename);
-        headingLink.addEventListener("click", (e) => {
-            e.preventDefault();
-            this.app.workspace.openLinkText(note.basename, note.path);
+        contentContainer.createEl("h4", {
+            text: note.basename,
         });
 
         const preview = contentContainer.createEl("blockquote");
@@ -66,18 +64,6 @@ export default class OnThisDaySidePanelView extends ItemView {
             note.path,
             this,
         );
-        preview
-            .querySelectorAll(".internal-link")
-            .forEach((link: HTMLElement) => {
-                link.addEventListener("click", (event) => {
-                    event.preventDefault();
-                    this.app.workspace.openLinkText(
-                        link.getAttribute("href") || "",
-                        note.path,
-                        event.ctrlKey || event.metaKey,
-                    );
-                });
-            });
 
         const previewImage = this.getPreviewImage(note);
         if (previewImage) {
