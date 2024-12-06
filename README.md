@@ -2,6 +2,8 @@
 
 Show your daily notes from this day in a simple panel view. Inspired by [Day One](https://dayoneapp.com)'s On This Day feature.
 
+![Screenshot 2024-12-06 at 2 07 21 PM](https://github.com/user-attachments/assets/7ee7106e-32ef-4ab5-b282-790c2df32366)
+
 ## Usage
 
 After installing, open the On This Day panel using the `Open On This Day panel` ribbon icon or the `On This Day: Open panel` command. (Once opened, you won't have to re-open it unless you close it.)
