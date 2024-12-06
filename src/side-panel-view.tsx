@@ -1,5 +1,5 @@
 import { IconName, ItemView, TFile, WorkspaceLeaf } from "obsidian";
-import { StrictMode, useEffect, useMemo, useRef, useState } from "react";
+import { StrictMode, useEffect, useMemo, useState } from "react";
 import { createRoot, Root } from "react-dom/client";
 import removeMd from "remove-markdown";
 import OnThisDayPlugin from "./main";
@@ -47,20 +47,12 @@ export default class OnThisDaySidePanelView extends ItemView {
     }
 
     Section = ({ note, isCurrent }: { note: TFile; isCurrent: boolean }) => {
-        const textPreviewRef = useRef<HTMLQuoteElement | null>(null);
+        const [textPreview, setTextPreview] = useState("");
         useEffect(() => {
-            const renderTextPreview = async () => {
-                if (!textPreviewRef.current) return;
+            (async () => {
                 const markdown = await this.app.vault.cachedRead(note);
-                const hash = `${markdown.length}:${markdown.slice(0, 50)}`;
-                if (textPreviewRef.current.dataset.hash === hash) {
-                    return;
-                }
-                // convert to plain text to keep height consistent
-                textPreviewRef.current.setText(this.toPlainText(markdown));
-                textPreviewRef.current.dataset.hash = hash;
-            };
-            renderTextPreview();
+                setTextPreview(this.toPlainText(markdown));
+            })();
         }, [note.stat.mtime]);
 
         const imagePreview = useMemo(
@@ -77,7 +69,7 @@ export default class OnThisDaySidePanelView extends ItemView {
             >
                 <div className="on-this-day-section-content">
                     <h4>{note.basename}</h4>
-                    <blockquote ref={textPreviewRef} />
+                    <blockquote>{textPreview}</blockquote>
                 </div>
                 {imagePreview && (
                     <div className="on-this-day-section-image-container">
