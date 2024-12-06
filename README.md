@@ -17,3 +17,8 @@ The plugin depends on the [Daily notes core plugin](https://help.obsidian.md/Plu
 In addition, the plugin exposes the following option:
 
 - Show image preview: by default, the plugin will include the first embedded image from each daily note in its preview. Turn this off if you don't want to see it.
+
+## Credits
+
+- [Day One](https://dayoneapp.com) for the original idea
+- [Erallie/diarian](https://github.com/Erallie/diarian) for demonstrating that the idea could work in Obsidian
