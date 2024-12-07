@@ -14,8 +14,8 @@ export default class OnThisDayPlugin extends Plugin {
     static title = "On This Day";
     static icon: IconName = "notebook-pen";
     static viewType = "on-this-day-view";
-    static commandId = "open-on-this-day-panel";
-    static commandName = "Open On This Day panel";
+    static openPanelId = "open-on-this-day-panel";
+    static openPanelName = "Open On This Day panel";
     private static defaultFormat = "YYYY-MM-DD";
 
     settings: OnThisDayPluginSettings;
@@ -153,13 +153,13 @@ export default class OnThisDayPlugin extends Plugin {
         this.app.workspace.onLayoutReady(() => this.refreshViews(true));
 
         this.addCommand({
-            id: OnThisDayPlugin.commandId,
-            name: OnThisDayPlugin.commandName,
+            id: OnThisDayPlugin.openPanelId,
+            name: OnThisDayPlugin.openPanelName,
             callback: async () => await this.activateView(),
         });
         this.addRibbonIcon(
             OnThisDayPlugin.icon,
-            OnThisDayPlugin.commandName,
+            OnThisDayPlugin.openPanelName,
             async () => await this.activateView(),
         );
 
