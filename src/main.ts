@@ -10,7 +10,7 @@ export default class OnThisDayPlugin extends Plugin {
     static icon: IconName = "notebook-pen";
     static viewType = "on-this-day-view";
     static openPanelId = "open-on-this-day-panel";
-    static openPanelName = "Open on this day panel";
+    static openPanelName = "Open panel";
     private static defaultFormat = "YYYY-MM-DD";
 
     settings: OnThisDayPluginSettings;
