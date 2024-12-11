@@ -95,7 +95,9 @@ export default class OnThisDaySidePanelView extends ItemView {
         }, []);
         return (
             <>
-                <h3>On This Day: {date}</h3>
+                <h3>
+                    {OnThisDayPlugin.title}: {date}
+                </h3>
                 {notes.map((note) => (
                     <this.Section
                         key={note.path}

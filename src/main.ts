@@ -6,11 +6,11 @@ import OnThisDaySidePanelView from "./side-panel-view";
 type Listener = (notes: TFile[], formattedDate: string) => void;
 
 export default class OnThisDayPlugin extends Plugin {
-    static title = "On This Day";
+    static title = "On this day";
     static icon: IconName = "notebook-pen";
     static viewType = "on-this-day-view";
     static openPanelId = "open-on-this-day-panel";
-    static openPanelName = "Open On This Day panel";
+    static openPanelName = "Open on this day panel";
     private static defaultFormat = "YYYY-MM-DD";
 
     settings: OnThisDayPluginSettings;
