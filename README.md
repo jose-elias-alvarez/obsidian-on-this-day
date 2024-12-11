@@ -1,4 +1,4 @@
-# Obsidian On This Day
+# On This Day
 
 Show your daily notes from this day in a simple panel view. Inspired by [Day One](https://dayoneapp.com)'s On This Day feature.
 
