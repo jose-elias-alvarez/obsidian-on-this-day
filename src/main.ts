@@ -1,12 +1,7 @@
-import moment from "moment";
-import { debounce, IconName, Plugin, TFile, WorkspaceLeaf } from "obsidian";
+import { debounce, IconName, moment, Plugin, TFile } from "obsidian";
 import OnThisDayPluginSettingTab from "./setting-tab";
 import { DEFAULT_SETTINGS, OnThisDayPluginSettings } from "./settings";
 import OnThisDaySidePanelView from "./side-panel-view";
-
-type OnThisDayLeaf = WorkspaceLeaf & {
-    view: OnThisDaySidePanelView;
-};
 
 type Listener = (notes: TFile[], formattedDate: string) => void;
 
@@ -85,14 +80,12 @@ export default class OnThisDayPlugin extends Plugin {
         return dailyNotes;
     }
 
-    private get visibleLeaves(): OnThisDayLeaf[] {
-        return this.app.workspace
-            .getLeavesOfType(OnThisDayPlugin.viewType)
-            .filter((leaf) => !leaf.isDeferred) as OnThisDayLeaf[];
+    private get leaves() {
+        return this.app.workspace.getLeavesOfType(OnThisDayPlugin.viewType);
     }
 
     private async activateView() {
-        const leaves = this.visibleLeaves;
+        const leaves = this.leaves;
         if (leaves.length > 0) {
             leaves.forEach((leaf) => this.app.workspace.revealLeaf(leaf));
             return;
@@ -113,7 +106,7 @@ export default class OnThisDayPlugin extends Plugin {
     }
 
     private onContentChange(note: TFile) {
-        if (this.visibleLeaves.length === 0) return;
+        if (this.leaves.length === 0) return;
         if (!this.isDailyNote(note)) return;
         this.refreshViews();
     }
