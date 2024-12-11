@@ -2,11 +2,12 @@
 
 Show your daily notes from this day in a simple panel view. Inspired by [Day One](https://dayoneapp.com)'s On This Day feature.
 
-![Screenshot 2024-12-06 at 2 07 21 PM](https://github.com/user-attachments/assets/7ee7106e-32ef-4ab5-b282-790c2df32366)
+![Screenshot 2024-12-11 at 4 53 49 PM](https://github.com/user-attachments/assets/2c7c88e4-e44e-4ebe-ad55-c1364b55825f)
+
 
 ## Usage
 
-After installing, open the On This Day panel using the `Open On This Day panel` ribbon icon or the `On This Day: Open panel` command. (Once opened, you won't have to re-open it unless you close it.)
+After installing, open the on this day panel using the `Open on this day panel` ribbon icon or the `On This Day: Open panel` command. (Once opened, you won't have to re-open it unless you close it.)
 
 On open, the panel will show a list of daily notes from the current date (i.e. notes from the same date and month but different years) together with a preview. If you switch to a different daily note, the panel will update to show notes from that date.
 
