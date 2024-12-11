@@ -130,5 +130,6 @@ export default class OnThisDaySidePanelView extends ItemView {
 
     async onClose(): Promise<void> {
         this.root?.unmount();
+        this.root = null;
     }
 }
