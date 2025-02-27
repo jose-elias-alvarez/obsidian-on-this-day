@@ -4,7 +4,6 @@ Show your daily notes from this day in a simple panel view. Inspired by [Day One
 
 ![Screenshot 2024-12-11 at 4 53 49 PM](https://github.com/user-attachments/assets/2c7c88e4-e44e-4ebe-ad55-c1364b55825f)
 
-
 ## Usage
 
 After installing, open the on this day panel using the `Open on this day panel` ribbon icon or the `On This Day: Open panel` command. (Once opened, you won't have to re-open it unless you close it.)
@@ -18,6 +17,15 @@ The plugin depends on the [Daily notes core plugin](https://help.obsidian.md/Plu
 In addition, the plugin exposes the following option:
 
 - Show image preview: by default, the plugin will include the first embedded image from each daily note in its preview. Turn this off if you don't want to see it.
+
+## Tips
+
+- Previews are rendered using Obsidian's native Markdown renderer (the same one used in page previews), with two adjustments:
+
+1. Properties (YAML metadata / frontmatter) are not shown.
+2. The first top-level heading (# Heading) that exactly matches the note's title is not shown.
+
+- For example, if your note is named `2025-02-27.md` and the first line of your note is `# 2025-02-27`, that heading will not be displayed in the preview.
 
 ## Credits
 

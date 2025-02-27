@@ -1,23 +1,38 @@
-import { IconName, ItemView, TFile, WorkspaceLeaf } from "obsidian";
-import { StrictMode, useEffect, useMemo, useState } from "react";
+import {
+    IconName,
+    ItemView,
+    MarkdownRenderer,
+    TFile,
+    WorkspaceLeaf,
+} from "obsidian";
+import { StrictMode, useEffect, useMemo, useRef, useState } from "react";
 import { createRoot, Root } from "react-dom/client";
-import removeMd from "remove-markdown";
 import OnThisDayPlugin from "./main";
 
 export default class OnThisDaySidePanelView extends ItemView {
     plugin: OnThisDayPlugin;
     root: Root | null = null;
+    renderId: number;
 
     constructor(leaf: WorkspaceLeaf, plugin: OnThisDayPlugin) {
         super(leaf);
         this.plugin = plugin;
+        this.renderId = 0;
     }
 
-    private toPlainText(markdown: string) {
-        return removeMd(markdown)
-            .replace(/!\[\[.*?\]\]/g, "") // embeds
-            .replace(/\[\[.*?\|(.*?)\]\]/g, "$1") // aliased wikilinks
-            .replace(/\[\[(.*?)\]\]/g, "$1"); // normal wikilinks
+    private async getContent(note: TFile) {
+        const content = await this.app.vault.cachedRead(note);
+        return (
+            content
+                // remove yaml metadata
+                // MarkdownRenderer.render is really weird: it only seems to show up on double renders,
+                // so just remove it to maintain consistency in case of bugs
+                .replace(/^---\n[\s\S]*?\n---\n?/, "")
+                // special case: remove top-level heading that matches note title
+                .replace(/^#\s+.*(\n|$)/, (match) =>
+                    match.trim() === `# ${note.basename}` ? "" : match,
+                )
+        );
     }
 
     // https://help.obsidian.md/Files+and+folders/Accepted+file+formats
@@ -47,11 +62,24 @@ export default class OnThisDaySidePanelView extends ItemView {
     }
 
     Section = ({ note, isCurrent }: { note: TFile; isCurrent: boolean }) => {
-        const [textPreview, setTextPreview] = useState("");
+        const previewRef = useRef<HTMLDivElement>(null);
+        const renderIdRef = useRef(0);
         useEffect(() => {
+            if (!previewRef.current) return;
+            const renderId = ++renderIdRef.current;
             (async () => {
-                const markdown = await this.app.vault.cachedRead(note);
-                setTextPreview(this.toPlainText(markdown));
+                if (!previewRef.current) return;
+                const content = await this.getContent(note);
+                // MarkdownRenderer.render *appends* content, so check before continuing to avoid race condition
+                if (renderId !== renderIdRef.current) return;
+                previewRef.current.innerHTML = "";
+                await MarkdownRenderer.render(
+                    this.app,
+                    content,
+                    previewRef.current,
+                    "",
+                    this,
+                );
             })();
         }, [note.stat.mtime]);
 
@@ -69,7 +97,10 @@ export default class OnThisDaySidePanelView extends ItemView {
             >
                 <div className="on-this-day-section-content">
                     <h4>{note.basename}</h4>
-                    <blockquote>{textPreview}</blockquote>
+                    <div
+                        className="on-this-day-section-preview"
+                        ref={previewRef}
+                    />
                 </div>
                 {imagePreview && (
                     <div className="on-this-day-section-image-container">
