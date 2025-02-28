@@ -1,6 +1,6 @@
 {
     "name": "obsidian-on-this-day",
-    "version": "2.0.0",
+    "version": "2.0.1",
     "description": "Show your daily notes from this day in a simple panel view",
     "main": "main.js",
     "scripts": {

@@ -1,7 +1,7 @@
 {
     "id": "on-this-day",
     "name": "On This Day",
-    "version": "2.0.0",
+    "version": "2.0.1",
     "minAppVersion": "0.15.0",
     "description": "Show your daily notes from this day in a simple panel view.",
     "author": "Jose Elias Alvarez",
