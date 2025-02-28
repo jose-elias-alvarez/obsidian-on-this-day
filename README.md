@@ -20,12 +20,14 @@ In addition, the plugin exposes the following option:
 
 ## Tips
 
-- Previews are rendered using Obsidian's native Markdown renderer (the same one used in page previews), with two adjustments:
+- Previews are rendered using Obsidian's native Markdown renderer (the same one used in page previews), with a few adjustments:
 
 1. Properties (YAML metadata / frontmatter) are not shown.
 2. The first top-level heading (# Heading) that exactly matches the note's title is not shown.
 
-- For example, if your note is named `2025-02-27.md` and the first line of your note is `# 2025-02-27`, that heading will not be displayed in the preview.
+For example, if your note is named `2025-02-27.md` and the first line of your note is `# 2025-02-27`, that heading will not be displayed in the preview.
+
+3. If you've enabled image previews, the first image in the note is not shown, since it's already displayed in the preview.
 
 ## Credits
 

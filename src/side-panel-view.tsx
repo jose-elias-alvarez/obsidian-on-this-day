@@ -20,21 +20,6 @@ export default class OnThisDaySidePanelView extends ItemView {
         this.renderId = 0;
     }
 
-    private async getContent(note: TFile) {
-        const content = await this.app.vault.cachedRead(note);
-        return (
-            content
-                // remove yaml metadata
-                // MarkdownRenderer.render is really weird: it only seems to show up on double renders,
-                // so just remove it to maintain consistency in case of bugs
-                .replace(/^---\n[\s\S]*?\n---\n?/, "")
-                // special case: remove top-level heading that matches note title
-                .replace(/^#\s+.*(\n|$)/, (match) =>
-                    match.trim() === `# ${note.basename}` ? "" : match,
-                )
-        );
-    }
-
     // https://help.obsidian.md/Files+and+folders/Accepted+file+formats
     private embeddedImageFileExtensions = new Set([
         "avif",
@@ -48,7 +33,6 @@ export default class OnThisDaySidePanelView extends ItemView {
     ]);
     private getImagePreview(note: TFile) {
         if (!this.plugin.settings.showImagePreview) return;
-
         for (const embed of this.app.metadataCache.getFileCache(note)?.embeds ||
             []) {
             const file = this.app.metadataCache.getFirstLinkpathDest(
@@ -59,6 +43,27 @@ export default class OnThisDaySidePanelView extends ItemView {
                 return file;
             }
         }
+    }
+
+    private extensionsRegex = new RegExp(
+        `!\\[\\[.*\\.(${Array.from(this.embeddedImageFileExtensions).join("|")})\\]\\]`,
+        "i",
+    );
+    private async getContent(note: TFile) {
+        const content = await this.app.vault.cachedRead(note);
+        let trimmed = content
+            // yaml metadata
+            // MarkdownRenderer.render is really weird: it only seems to show up on double renders,
+            // so just remove it to maintain consistency in case of bugs
+            .replace(/^---\n[\s\S]*?\n---\n?/, "")
+            // special case: top-level heading that matches note title
+            .replace(/^#\s+.*(\n|$)/, (match) =>
+                match.trim() === `# ${note.basename}` ? "" : match,
+            );
+        if (this.plugin.settings.showImagePreview)
+            // first inline image (already shown in preview)
+            trimmed = trimmed.replace(this.extensionsRegex, "");
+        return trimmed;
     }
 
     Section = ({ note, isCurrent }: { note: TFile; isCurrent: boolean }) => {
