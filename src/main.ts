@@ -58,7 +58,8 @@ export default class OnThisDayPlugin extends Plugin {
 
     private isDailyNote(note: TFile): boolean {
         return (
-            note.path.startsWith(this.folder) && moment(note.basename).isValid()
+            note.path.startsWith(this.folder) &&
+            moment(note.basename, this.format).isValid()
         );
     }
 
