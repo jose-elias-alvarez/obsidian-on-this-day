@@ -29,6 +29,8 @@ For example, if your note is named `2025-02-27.md` and the first line of your no
 
 3. If you've enabled image previews, the first image in the note is not shown, since it's already displayed in the preview.
 
+- If you change your daily notes core plugin settings (date format / new file location), make sure to restart Obsidian.
+
 ## Credits
 
 - [Day One](https://dayoneapp.com) for the original idea

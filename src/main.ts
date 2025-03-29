@@ -26,19 +26,23 @@ export default class OnThisDayPlugin extends Plugin {
         this.listeners.forEach((listener) => listener(notes, formattedDate));
     }
 
+    _folder: string;
     private get folder(): string {
-        return (
-            // @ts-expect-error
-            this.app.internalPlugins.getPluginById("daily-notes")?.instance
-                ?.options?.folder || ""
-        );
+        if (!this._folder)
+            this._folder =
+                // @ts-expect-error
+                this.app.internalPlugins.getPluginById("daily-notes")?.instance
+                    ?.options?.folder || "";
+        return this._folder;
     }
+    _format: string;
     private get format(): string {
-        return (
-            // @ts-expect-error
-            this.app.internalPlugins.getPluginById("daily-notes")?.instance
-                ?.options?.format || OnThisDayPlugin.defaultFormat
-        );
+        if (!this._format)
+            this._format =
+                // @ts-expect-error
+                this.app.internalPlugins.getPluginById("daily-notes")?.instance
+                    ?.options?.format || OnThisDayPlugin.defaultFormat;
+        return this._format;
     }
 
     private get currentDate(): moment.Moment {
